@@ -15,18 +15,17 @@ with open("output_got.csv", "rb") as csvfile:
 
 # for label 0 data
 tweetArrayLabel0 = [];
-with open("output_got1.csv", "rb") as csvfile:
+with open("GetOldTweets-python/output_got1.csv", "rb") as csvfile:
     tweets = csv.reader(csvfile, delimiter=";", quotechar="|");
     for row in tweets:
         tweetArrayLabel0.append(row[4]);
 
 # for test data
 tweetArrayTest = [];
-with open("test.csv", "rb") as csvfile:
+with open("test3.csv", "rb") as csvfile:
     tweets = csv.reader(csvfile, delimiter=";", quotechar="|");
     for row in tweets:
         tweetArrayTest.append(row[4]);
-
 
 
 v = DictVectorizer(sparse=True);
@@ -61,16 +60,17 @@ tweetDataSplitTest = []
 tempsplitbuffer = []
 for i in range(0, len(tweetArrayTest)):
     tempsplitbuffer.append(tweetArrayTest[i])
-    if (len(tempsplitbuffer) >= 1000):
+
+    if (len(tempsplitbuffer) >= 100):
         tweetDataSplitTest.append(list(tempsplitbuffer))
         tempsplitbuffer = []
-
 
 # extract word presences
 
 # loop through the data subsets
 targetNames =  {}
 featuresArray = []
+
 for tweetDataSubset in tweetDataSplit:
     # loop through each tweet in the data subset and make a word presence array
     for tweet in tweetDataSubset:
@@ -93,7 +93,8 @@ for tweetDataSubset in tweetDataSplit:
     for tweet in tweetDataSubset:
         wordsInTweet = tweet.split()
         for word in wordsInTweet:
-            feature[word] = 1
+            if word in targetNames:
+                feature[word] = 1
     featureArray = np.array(list(feature.values()))
     featuresArray.append(featureArray)
 
@@ -103,7 +104,9 @@ for tweetDataSubset in tweetDataSplitLabel0:
     for tweet in tweetDataSubset:
         wordsInTweet = tweet.split()
         for word in wordsInTweet:
-            feature[word] = 1
+            if word in targetNames:
+                feature[word] = 1
+    print len(feature.values())
     featureArray = np.array(list(feature.values()))
     featuresArray.append(featureArray)
 
@@ -114,10 +117,11 @@ for tweetDataSubset in tweetDataSplitTest:
     for tweet in tweetDataSubset:
         wordsInTweet = tweet.split()
         for word in wordsInTweet:
-            test[word] = 1
+            if word in targetNames:
+                test[word] = 1
+    print len(test.values())
     testArray = np.array(list(test.values()))
     testsArray.append(testArray)
-
 
 labels = [1 for x in range(10)]
 labels0 = [0 for x in range(10)]
@@ -127,4 +131,6 @@ clf = svm.SVC(gamma=0.001, C=100.)
 labelArray = np.array(labels)
 clf.fit(np.array(featuresArray), labelArray)
 
-
+# here's the fun part. PREDICT!
+prediction = clf.predict(np.array(testsArray))
+print prediction
