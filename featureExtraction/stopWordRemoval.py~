@@ -157,7 +157,7 @@ def removeStopWords():
         modifiedTweetArray.append(modifiedTweet)
     text_file = open("stoppedTweets.txt", "w")
     for tweet in modifiedTweetArray:
-	text_file.write(' '.join(tweet) + "\n")
+	text_file.write(tweet + "\n")
     text_file.close()
     print modifiedTweetArray
 removeStopWords()
