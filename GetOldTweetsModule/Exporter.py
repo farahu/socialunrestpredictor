@@ -2,7 +2,7 @@
 
 import sys,getopt,got,datetime,codecs
 
-def tweetQuery(argv, outputFilename):
+def tweetQuery(argv):
 
 	if len(argv) == 0:
 		print 'You must pass some parameters. Use \"-h\" to help.'
@@ -31,9 +31,10 @@ def tweetQuery(argv, outputFilename):
 		return
  
 	try:
-		print argv
-		opts, args = getopt.getopt(argv, "", ("username=", "since=", "until=", "querysearch=", "toptweets", "maxtweets="))
+		opts, args = getopt.getopt(argv, "", ("username=", "since=", "until=", "querysearch=", "toptweets", "maxtweets=", "fileName="))
 		tweetCriteria = got.manager.TweetCriteria()
+
+		outputFilename = "output_got"
 		
 		for opt,arg in opts:
 			if opt == '--username':
@@ -53,10 +54,11 @@ def tweetQuery(argv, outputFilename):
 				
 			elif opt == '--maxtweets':
 				tweetCriteria.maxTweets = int(arg)
-		print 'hello from other side'
+			elif opt == '--fileName':
+				outputFilename = arg + ".csv"
 		
 		outputFile = codecs.open(outputFilename, "w+", "utf-8")
-		
+
 		outputFile.write('username;date;retweets;favorites;text;geo;mentions;hashtags;id;permalink')
 		
 		print 'Searching...\n'
@@ -73,7 +75,7 @@ def tweetQuery(argv, outputFilename):
 		print 'Arguments parser error, try -h' + arg
 	finally:
 		outputFile.close()
-		print 'Done. Output file generated "output_got.csv".'
+		print 'Done. Output file generated' + outputFilename + '.'
 
 if __name__ == '__main__':
-	main(sys.argv[1:])
+	tweetQuery(sys.argv[1:])

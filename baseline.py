@@ -133,4 +133,3 @@ clf.fit(np.array(featuresArray), labelArray)
 
 # here's the fun part. PREDICT!
 prediction = clf.predict(np.array(testsArray))
-print prediction
