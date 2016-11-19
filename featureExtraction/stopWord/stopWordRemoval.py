@@ -23,7 +23,7 @@ listOfStopFileNames = ["finalStopWords.txt"]
 listOfStopWords = []
 listOfRandomDates = []
 stopWordGenerationDir = "TweetsForStopWords"
-punctuation = set([",", ":", "?", ".", "-", "(", ")", "\'", "\"", "!", "/", "#"])
+punctuation = set([",", ":", "?", ".", "-", "(", ")", "\'", "\"", "!", "/", "#", "@"])
 
 def removePunctuation(word):
     newWord = ""
@@ -63,12 +63,6 @@ def generateRandomTweets():
         print x
 
 # generateRandomTweets()
-def loadStopFiles():
-    for stopFileName in listOfStopFileNames:
-        with open('featureExtraction/stopWord/' + stopFileName, "rb") as stopFile:
-            for line in stopFile:
-                line = line[:-1]
-                listOfStopWords.append(line)
 
 
 
@@ -113,29 +107,53 @@ def generateStopWords():
 
 # ============================================================ ACTUAL STOP WORD REMOVAL
 
-modifiedTweets = []
 
-def removeStopWords():
-    loadStopFiles()
-    tweetArray = loadTweetFiles()
-    modifiedTweetArray = []
-    for tweet in tweetArray:
-        tweet = removePunctuation(tweet)
-        modifiedTweet = tweet.split(" ")
-        for word in listOfStopWords:
-            if word in modifiedTweet:
-                modifiedTweet.remove(word)
+class StopWordRemover:
+    def __init__(self):
+        self.listOfStopWords = self.loadStopFiles()
 
-        modifiedTweetArray.append(modifiedTweet)
+    def loadStopFiles(self):
+        listOfStopWords = []
+        for stopFileName in listOfStopFileNames:
+            with open('featureExtraction/stopWord/' + stopFileName, "rb") as stopFile:
+                for line in stopFile:
+                    line = line[:-1]
+                    listOfStopWords.append(line)
 
-    text_file = open("featureExtraction/stopWord/stoppedTweets.txt", "w")
-    for tweet in modifiedTweetArray:
-        text_file.write(str(tweet) + '\n')
+        return listOfStopWords
 
-    text_file.close()
+    def removeStopWords(self, tweet):
+        """ Tokenizes and returns tweet as array of words with stop words removed """ 
+        tweetAsArray = tweet.split()
+        modifiedTweet = []
+        for word in tweetAsArray:
+            if word in self.listOfStopWords:
+                continue
+            modifiedTweet.append(word)
+
+        return modifiedTweet
+
+# def removeStopWords():
+#     loadStopFiles()
+#     tweetArray = loadTweetFiles()
+#     modifiedTweetArray = []
+#     for tweet in tweetArray:
+#         tweet = removePunctuation(tweet)
+#         modifiedTweet = tweet.split(" ")
+#         for word in listOfStopWords:
+#             if word in modifiedTweet:
+#                 modifiedTweet.remove(word)
+
+#         modifiedTweetArray.append(modifiedTweet)
+
+#     text_file = open("featureExtraction/stopWord/stoppedTweets.txt", "w")
+#     for tweet in modifiedTweetArray:
+#         text_file.write(str(tweet) + '\n')
+
+#     text_file.close()
 
 # generateStopWords()
-removeStopWords()
+# removeStopWords()
 #print tweetArray
 
 

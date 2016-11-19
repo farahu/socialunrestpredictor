@@ -89,7 +89,7 @@ class TweetManager:
 			
 		if hasattr(tweetCriteria, 'until'):
 			urlGetData += ' until:' + tweetCriteria.until
-                urlGetData += ' near:' + 'Ferguson'
+                urlGetData += ' near:' + 'Charlotte'
                 urlGetData += ' within:' + '50mi'
 
 		if hasattr(tweetCriteria, 'querySearch'):

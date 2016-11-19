@@ -3,28 +3,46 @@ import operator
 import os
 
 class BagOfWords:
-    def __init__(self, threshold = 3):
-        self.bogFilename = "featureExtraction/wordBag.txt"
+    def __init__(self, threshold = 30):
+        self.bogFilename = "wordBagDifference.txt"
         self.BOG_THRESHOLD = threshold
-        self.BOG = []
+        self.bog = []
 
     def getBagOfWords(self):
-        if len(self.BOG) == 0:
+        if len(self.bog) == 0:
             # generate and then return
             self.generateBagOfWords()
-        return self.BOG
+        return self.bog
 
-    def generateBagOfWords(self):
-        wordCount = collections.defaultdict(int)
+    def generateBag(self, trainPool0, trainPool1):
+        """ trainPool is a set of sets of words from social unrest data"""
 
-        with open("featureExtraction/stopWord/stoppedTweets.txt") as f:
-            for line in f:
-                tempList = eval(line)
-                for word in tempList:
-                    wordCount[word] += 1
+        #self.bog = ["protest", "violent", "protesters", "night", "gas", "peaceful", "media", "tear", "protests", "cops", "crowd", "justice"]
+        wordCount0 = collections.defaultdict(int)
+        wordCount1 = collections.defaultdict(int)
+        wordDifference = collections.defaultdict(int)
 
-        sortedWordCount = sorted(wordCount.iteritems(), key=operator.itemgetter(1), reverse=True)
-        text_file = open("wordBag.txt", "w")
+        for setTweets in trainPool0:
+            for tweet in setTweets:
+                for word in tweet:
+                    wordCount0[word] += 1
+
+        for setTweets in trainPool1:
+            for tweet in setTweets:
+                for word in tweet:
+                    wordCount1[word] += 1
+
+        for word in wordCount1:
+            if word in wordCount0:
+                wordDifference[word] = wordCount1[word] - wordCount0[word]
+            else:
+                wordDifference[word] = wordCount1[word]
+
+
+
+
+        sortedWordCount = sorted(wordDifference.iteritems(), key=operator.itemgetter(1), reverse=True)
+        text_file = open(self.bogFilename, "w")
         for word, count in sortedWordCount:
             text_file.write(word + ', ' + str(count) + '\n')
         text_file.close()
@@ -33,4 +51,4 @@ class BagOfWords:
         for word,count in sortedWordCount:
             if count < self.BOG_THRESHOLD:
                 break
-            self.BOG.append(word)
+            self.bog.append(word)

@@ -30,11 +30,16 @@ def tweetQuery(argv):
  python Exporter.py --username "barackobama" --maxtweets 10 --toptweets\n"""
 		return
  
+
 	try:
-		opts, args = getopt.getopt(argv, "", ("username=", "since=", "until=", "querysearch=", "toptweets", "maxtweets=", "fileName="))
+		print "hello"
+		opts, args = getopt.getopt(argv, "", ("username=", "since=", "until=", "querysearch=", "toptweets", "maxtweets=", "filename="))
+		print "hello2"
 		tweetCriteria = got.manager.TweetCriteria()
 
 		outputFilename = "output_got"
+
+		print outputFilename
 		
 		for opt,arg in opts:
 			if opt == '--username':
@@ -54,10 +59,12 @@ def tweetQuery(argv):
 				
 			elif opt == '--maxtweets':
 				tweetCriteria.maxTweets = int(arg)
-			elif opt == '--fileName':
+			elif opt == '--filename':
 				outputFilename = arg + ".csv"
 		
 		outputFile = codecs.open(outputFilename, "w+", "utf-8")
+
+		print "Hello, from the other side!"
 
 		outputFile.write('username;date;retweets;favorites;text;geo;mentions;hashtags;id;permalink')
 		
@@ -75,7 +82,7 @@ def tweetQuery(argv):
 		print 'Arguments parser error, try -h' + arg
 	finally:
 		outputFile.close()
-		print 'Done. Output file generated' + outputFilename + '.'
+		print 'Done. Output file generated ' + outputFilename + '.'
 
 if __name__ == '__main__':
 	tweetQuery(sys.argv[1:])
