@@ -3,13 +3,14 @@ import operator
 import os
 import sys
 import numpy as np
+from plot import plot
 from sklearn.feature_extraction import DictVectorizer
 from sklearn import svm
 
-sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/featureExtraction")
+sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/featureExtraction")
 from featureExtractor import FeatureExtractor
 
-sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/data")
+sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/")
 from dataOrganizer import DataOrganizer
 
 STOP_WORD_CUTOFF = 38
@@ -70,12 +71,12 @@ def learn(X0, X1):
     # prediction = clf.predict(np.array(testsArray))
 
 def test(clf, testSet):
-    """ takes in a list of feature vectors and a fit svm and then predicts """
+    """ takes in a list of feature vectors and a fit svm and then returns predicted y labels """
 
     # convert to np array
     featureArray = convertListOfFeatures([testSet])
 
-    print clf.predict(featureArray)
+    return clf.predict(featureArray)
 
 def main():
     """" Preprocesses, extracts, learns, tests"""
@@ -96,12 +97,26 @@ def main():
     fe = FeatureExtractor()
     X0, X1 = fe.extractTrainFeatureVectors((trainData0, trainData1))
 
+
     testFeatures = fe.extractTestFeatureVectors((testData))
 
     clf = learn(X0, X1)
 
-    test(clf, testFeatures)
+    # in the future save and only relearn when needed   
+    yPred = test(clf, testFeatures)
 
-    # call sk
+    # plot results
+    
+    # generate yActual. For now its manual
+    numLabel1 = 100
+    yActual = [1 for i in range(numLabel1)]
+    yActual.extend([0 for i in range(len(yPred)-numLabel1)])
+
+    print yActual
+    print yPred
+
+    
+    plot(yActual, yPred, ["No Social Unrest", "Social Unrest"])
+
 
 main()

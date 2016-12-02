@@ -3,12 +3,11 @@ import operator
 import os
 
 import sys
-sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/featureExtraction")
+sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/featureExtraction")
 from bagOfWords import BagOfWords
-sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/featureExtraction/stopWord")
+sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/featureExtraction/stopWord")
 from stopWordRemoval import removePunctuation
 from stopWordRemoval import StopWordRemover
-sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/data")
 
 class FeatureExtractor:
 

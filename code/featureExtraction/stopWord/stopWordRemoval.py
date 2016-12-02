@@ -115,7 +115,7 @@ class StopWordRemover:
     def loadStopFiles(self):
         listOfStopWords = []
         for stopFileName in listOfStopFileNames:
-            with open('featureExtraction/stopWord/' + stopFileName, "rb") as stopFile:
+            with open('code/featureExtraction/stopWord/' + stopFileName, "rb") as stopFile:
                 for line in stopFile:
                     line = line[:-1]
                     listOfStopWords.append(line)
