@@ -67,6 +67,7 @@ class FeatureExtractor:
         self.bog = BagOfWords()
         self.bog.generateBag(setsOfSets0, setsOfSets1)
 
+        self.bog.saveBoG()    
 
         # now we want to generate a feature vector for each set. Right now the last
         # step to generate these feature vecotrs is just bagging

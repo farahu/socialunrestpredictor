@@ -1,6 +1,7 @@
 import collections
 import operator
 import os
+import time
 
 class BagOfWords:
     def __init__(self, threshold = 30):
@@ -32,6 +33,7 @@ class BagOfWords:
                 for word in tweet:
                     wordCount1[word] += 1
 
+        # background subtraction
         for word in wordCount1:
             if word in wordCount0:
                 wordDifference[word] = wordCount1[word] - wordCount0[word]
@@ -52,3 +54,25 @@ class BagOfWords:
             if count < self.BOG_THRESHOLD:
                 break
             self.bog.append(word)
+
+    def saveBoG(self):
+        millis = int(round(time.time() * 1000))
+        bog_file = "BoG" + str(millis)
+
+        print "Saving BoG to file..."
+        bogFile = open("models/BoG/" + bog_file , 'w')
+        for item in self.bog:
+            bogFile.write("%s\n" % item)
+        print len(self.bog)
+
+    def getLatestBoG(self):
+        filenames = os.listdir("models/BoG")
+        if(len(filenames) == 0):
+            return None #BoG of file should be present, called too early
+        lastBoG = filenames[-1]
+        self.bog = []
+        bogFile = open("models/BoG/" + lastBoG)
+        for line in bogFile:
+            self.bog.append(line.rstrip('\n')   ) #each line contains a single word as saved
+        print len(self.bog)
+

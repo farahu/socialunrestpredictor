@@ -89,24 +89,20 @@ class TweetManager:
 			
 		if hasattr(tweetCriteria, 'until'):
 			urlGetData += ' until:' + tweetCriteria.until
-                urlGetData += ' near:' + 'Tottenham'
-                urlGetData += ' within:' + '40mi'
+			# custom
+			urlGetData += ' near:' + 'seattle'
+			urlGetData += ' within:' + '40mi'
+			# urlGetData += ' lang:' + 'en'
 
 		if hasattr(tweetCriteria, 'querySearch'):
 			urlGetData += ' ' + tweetCriteria.querySearch
-
-                if hasattr(tweetCriteria, 'near'):
-                        urlGetDat += ' ' + tweetCriteria.nearPlace
-
-                if hasattr(tweetCriteria, 'within'):
-                        urlGetDat += ' ' + tweetCriteria.within
-
 
 
 		if hasattr(tweetCriteria, 'topTweets'):
 			if tweetCriteria.topTweets:
 				url = "https://twitter.com/i/search/timeline?q=%s&src=typd&max_position=%s"
 		url = url % (urllib.quote(urlGetData), refreshCursor)
+		# print url
 
 		headers = [
 			('Host', "twitter.com"),

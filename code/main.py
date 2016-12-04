@@ -3,12 +3,15 @@ import operator
 import os
 import sys
 import numpy as np
+import time
 from plot import plot
 from sklearn.feature_extraction import DictVectorizer
 from sklearn import svm
+from sklearn.externals import joblib
 
 sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/featureExtraction")
 from featureExtractor import FeatureExtractor
+from bagOfWords import BagOfWords
 
 sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/")
 from dataOrganizer import DataOrganizer
@@ -81,26 +84,57 @@ def test(clf, testSet):
 def main():
     """" Preprocesses, extracts, learns, tests"""
 
+    # process flags
+    do_retrain = False
+    for arg in sys.argv[1:]:
+        if ("--retrain" in arg):
+            if ("yes" in arg):
+                do_retrain = True
+
     # preprocessing
     do = DataOrganizer()
 
-    # get sets of tweets as training data
-    trainData0, trainData1 = do.organizeTrain("data/train/")
-    
-    # get sets of tweets of testing data
-    testData = do.organizeTest("data/test/")
-
-    # take in data
-    # wordCount = readData()
+    # __________________________________ TRAINING ________________________ #
 
     # use BoG to convert to frequency vector
     fe = FeatureExtractor()
-    X0, X1 = fe.extractTrainFeatureVectors((trainData0, trainData1))
 
+    clf = 0
+    clf_file = ""
+
+    # get the latest trained model
+    filenames = os.listdir("models/")
+    if len(filenames) > 0:
+        clf_file = "models/" + filenames[-1]
+    else:
+        clf_file = None
+
+    if do_retrain or not clf_file:
+        # get sets of tweets as training data
+        trainData0, trainData1 = do.organizeTrain("data/train/")
+
+        # split training set into validation and training set
+        # trainData0, trainData1, validation = do.splitIntoValidation()
+        X0, X1 = fe.extractTrainFeatureVectors((trainData0, trainData1))
+        clf = learn(X0, X1)
+
+        millis = int(round(time.time() * 1000))
+        clf_file = "trainedModel" + str(millis)
+        print "Saving model to file..."
+
+        joblib.dump(clf, "models/" + clf_file, compress = 1) 
+    else:
+        print "Using trained model and BoG..."
+        fe.bog = BagOfWords()
+        fe.bog.getLatestBoG()
+        clf = joblib.load(clf_file) 
+        
+    # ____________________________________TESTING __________________________ #
+
+    # get sets of tweets of testing data
+    testData = do.organizeTest("data/test/")
 
     testFeatures = fe.extractTestFeatureVectors((testData))
-
-    clf = learn(X0, X1)
 
     # in the future save and only relearn when needed   
     yPred = test(clf, testFeatures)
@@ -118,5 +152,5 @@ def main():
     
     plot(yActual, yPred, ["No Social Unrest", "Social Unrest"])
 
-
-main()
+if __name__ == "__main__":
+    main()
