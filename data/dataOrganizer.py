@@ -12,20 +12,79 @@ class DataOrganizer:
     def __init__(self):
         self.NUM_TWEETS_IN_SET = 100
 
-    def organizeTrain(self, dataFileDir):
+        # keeps track of how many sets should be labled 0 and how many labled 1 for accuracy measurement
+        self.numTest0 = 0
+        self.numTest1 = 0
+
+    def organizeTrain(self, dataFileDir, resample):
         # get all tweets from all train collections
-        tweetArray0, tweetArray1 = self.readDataTrain(dataFileDir)
+
+
 
         # split in subsets
+        # if(resample):
+        tweetArray0, tweetArray1, validationArray0, validationArray1 = \
+            self.readDataTrainWithValidation(dataFileDir)
+
         setsOfTweets0 = self.randomSplit(tweetArray0)
         setsOfTweets1 = self.randomSplit(tweetArray1)
+        setsOfTweets0Validation = self.randomSplit(validationArray0)
+        setsOfTweets1Validation = self.randomSplit(validationArray1)
+
+        saveTrainAndValidationSets(setOfTweets0, setOfTweets1, setsOfTweets0Validation, \
+            setsOfTweets1Validation, dataFileDir)
+        # else:
+        #     setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, setsOfTweets1Validation = \
+        #         loadTrainAndValidationSets();
+
 
         return setsOfTweets0, setsOfTweets1
+
+
+
+    # def loadTrainAndValidationSets(self):
+    #     """ Reads from the train and validation folders and returns the sets """
+
+
+    def saveTrainAndValidationSets(self, train0, train1, validate0, validate1, dataFileDir):
+        dataFileTrainDir = dataFileDir + "/train/"
+        dataFileValidateDir = dataFileDir + "/validate/"
+        for fileName in os.listdir(dataFileTrainDir):
+            os.remove(dataFileTrainDir + fileName)
+        for fileName in os.listdir(dataFileValidateDir):
+            os.remove(dataFileValidateDir + fileName)
+
+        fileNamesDir = [dataFileTrainDir + "train0", dataFileTrainDir + "train1", \
+           dataFileValidateDir + "validate0",dataFileValidateDir + "validate1"]
+
+        train0File = open(fileNamesDir[0], 'w')
+        print "File opened"
+        for tweetSet in train0:
+            for tweet in tweetSet:
+                train0File.write("%s\n" % tweet)
+
+        train1File = open(fileNamesDir[1], 'w')
+        for tweetSet in train1:
+            for tweet in tweetSet:
+                train1File.write("%s\n" % tweet)
+
+        validate0File = open(fileNamesDir[2], 'w')
+        for tweetSet in validate0:
+            for tweet in tweetSet:
+                validate0File.write("%s\n" % tweet)
+
+        validate1File = open(fileNamesDir[3], 'w')
+        for tweetSet in validate1:
+            for tweet in tweetSet:
+                validate1File.write("%s\n" % tweet)
+
+
 
     def organizeTest(self, dataFileDir):
         # get all tweets from all train collections
         collectionArray = self.readDataTest(dataFileDir)
         setsOfTweets = [];
+
         # split in subsets
         for collection in collectionArray:
             for newSet in self.testSplit(collection):
@@ -59,7 +118,8 @@ class DataOrganizer:
         return setOfSets
 
     def readDataTest(self, dataFileDir):
-        """ Return array of tweets as strings"""
+        """ Return array of arrays of tweets as strings. Also counts number of 
+        label 0 and label 1s in data set"""
 
         # read in all csv files in data
         collectionArray = [];
@@ -69,11 +129,14 @@ class DataOrganizer:
                     continue
 
                 tweets = csv.reader(csvfile, delimiter=";", quotechar="|")
+
                 collection = [];
                 for row in tweets:
                     collection.append(row[4].lower())
                 collectionArray.append(collection)
-                
+
+                # increment the test labels
+                self.incrementTestLabels(fileName, len(collection))
 
         return collectionArray
         
@@ -96,3 +159,9 @@ class DataOrganizer:
                         tweetArray0.append(row[4].lower())
 
         return (tweetArray0, tweetArray1)
+
+    def incrementTestLabels(self, fileName, numTweets):
+        if '1' in fileName:
+            self.numTest1 += numTweets / self.NUM_TWEETS_IN_SET
+        else:
+            self.numTest0 += numTweets / self.NUM_TWEETS_IN_SET

@@ -2,6 +2,7 @@ import collections
 import operator
 import os
 import time
+import sys
 
 class BagOfWords:
     def __init__(self, threshold = 30):
@@ -41,9 +42,9 @@ class BagOfWords:
                 wordDifference[word] = wordCount1[word]
 
 
-
-
         sortedWordCount = sorted(wordDifference.iteritems(), key=operator.itemgetter(1), reverse=True)
+
+
         text_file = open(self.bogFilename, "w")
         for word, count in sortedWordCount:
             text_file.write(word + ', ' + str(count) + '\n')

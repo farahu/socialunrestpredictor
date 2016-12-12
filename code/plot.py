@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import confusion_matrix
 
-def plot(y_test, y_pred, class_names):
+def plot(y_test, y_pred, class_names, title = "confusion matrix"):
     # Compute confusion matrix
     cnf_matrix = confusion_matrix(y_test, y_pred)
     np.set_printoptions(precision=2)
@@ -12,12 +12,12 @@ def plot(y_test, y_pred, class_names):
     # Plot non-normalized confusion matrix
     plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=class_names,
-                        title='Confusion matrix, without normalization')
+                        title= title + ' Without Normalization')
 
     # Plot normalized confusion matrix
     plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
-                        title='Normalized confusion matrix')
+                        title= title + ' Normalized')
 
     plt.show()
 

@@ -12,8 +12,6 @@ from sklearn.externals import joblib
 sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/featureExtraction")
 from featureExtractor import FeatureExtractor
 from bagOfWords import BagOfWords
-
-sys.path.insert(0, "/Users/tariq/Dev/School/socialunrestpredictor/code/")
 from dataOrganizer import DataOrganizer
 
 STOP_WORD_CUTOFF = 38
@@ -31,6 +29,16 @@ DICTIONARY_CUTOFF = 3887
 #                 wordCount[word] += 1
 
 #     return wordCount
+
+# def validate(clf, validation0, validation1):
+#     featureArray = convertListOfFeatures([validation0, validation1])
+#     yPred = clf.predict(featureArray)
+
+#     yActual = [0 for x in range(len(validation0))]
+#     yActual.extend([1 for x in range(len(validation1))])
+
+#     plot("Validation", yActual, yPred, ["No Social Unrest", "Social Unrest"])
+
 
 def convertListOfFeatures(listOfListsOfFeatures):
     """ takes of a list OF a list of feature vectors and returns a feature numpy array"""
@@ -73,23 +81,50 @@ def learn(X0, X1):
     # # here's the fun part. PREDICT!
     # prediction = clf.predict(np.array(testsArray))
 
-def test(clf, testSet):
-    """ takes in a list of feature vectors and a fit svm and then returns predicted y labels """
+def test(action, clf, testSet, testLabels):
+    """ takes in a list of feature vectors and a fits svm and plots results
+    Can be used for validation as well
+
+    action: either "testing" or "validation" """
 
     # convert to np array
     featureArray = convertListOfFeatures([testSet])
 
-    return clf.predict(featureArray)
+    yPred = clf.predict(featureArray)
+
+    # plot results    
+    # # generate yActual. For now its manual
+    # yActual = [0 for i in range(numTest0)]
+    # yActual.extend([1 for i in range(numTest1)])
+
+    printError(yPred, testLabels)
+    
+    plot(testLabels, yPred, ["No Social Unrest", "Social Unrest"], action)
+
+def printError(yPred, testLabels):
+    errorCount = 0.0
+    for i, trueLabel in enumerate(yPred):
+        if trueLabel != testLabels[i]:
+            errorCount += 1.0
+
+    print "Error is: " + str(errorCount/len(testLabels))
 
 def main():
     """" Preprocesses, extracts, learns, tests"""
 
     # process flags
-    do_retrain = False
+    do_retrain, do_rebuildValidation, do_test = False, False, False
+
     for arg in sys.argv[1:]:
         if ("--retrain" in arg):
             if ("yes" in arg):
                 do_retrain = True
+        if ("--rebuildValidation" in arg):
+            if ("yes" in arg):
+                do_rebuildValidation = True
+        if ("--test" in arg):
+            if ("yes" in arg):
+                do_test = True
 
     # preprocessing
     do = DataOrganizer()
@@ -97,7 +132,8 @@ def main():
     # __________________________________ TRAINING ________________________ #
 
     # use BoG to convert to frequency vector
-    fe = FeatureExtractor()
+
+    fe = FeatureExtractor(FeatureExtractor.ModelType.BagOfClusters)
 
     clf = 0
     clf_file = ""
@@ -109,12 +145,14 @@ def main():
     else:
         clf_file = None
 
-    if do_retrain or not clf_file:
-        # get sets of tweets as training data
-        trainData0, trainData1 = do.organizeTrain("data/train/")
+    # get sets of tweets as training data
+    # trainData0, trainData1, validation0, validation1 \
+    #     = do.organizeTrainWithValidation("data/trainValidate/", do_rebuildValidation)
 
+    trainData0, trainData1 = do.organizeTrain("data/train/")
+
+    if do_retrain or not clf_file:
         # split training set into validation and training set
-        # trainData0, trainData1, validation = do.splitIntoValidation()
         X0, X1 = fe.extractTrainFeatureVectors((trainData0, trainData1))
         clf = learn(X0, X1)
 
@@ -128,29 +166,23 @@ def main():
         fe.bog = BagOfWords()
         fe.bog.getLatestBoG()
         clf = joblib.load(clf_file) 
-        
-    # ____________________________________TESTING __________________________ #
 
-    # get sets of tweets of testing data
-    testData = do.organizeTest("data/test/")
+    # we're either validating or testing based on the passed flag
 
-    testFeatures = fe.extractTestFeatureVectors((testData))
+    # ____________________________________VALIDATION__________________________#
+    if not do_test:
+        # feed in the validation sets as one set
+        validationData = do.organizeTest("data/validation/")
+        validationFeatures = fe.extractTestFeatureVectors(validationData)
+        test("Validation", clf, validationFeatures, do.numTest0, do.numTest1)
+    else:
+        # ____________________________________TESTING _______________________ #
 
-    # in the future save and only relearn when needed   
-    yPred = test(clf, testFeatures)
-
-    # plot results
-    
-    # generate yActual. For now its manual
-    numLabel1 = 100
-    yActual = [1 for i in range(numLabel1)]
-    yActual.extend([0 for i in range(len(yPred)-numLabel1)])
-
-    print yActual
-    print yPred
-
-    
-    plot(yActual, yPred, ["No Social Unrest", "Social Unrest"])
+        # extract test features and test
+        print "Using testing"
+        testData, testLabels = do.organizeTest("data/test/")
+        testFeatures = fe.extractTestFeatureVectors(testData) 
+        test("Testing, Global Protests With Background Subtraction", clf, testFeatures, testLabels)
 
 if __name__ == "__main__":
     main()
