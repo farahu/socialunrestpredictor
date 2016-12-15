@@ -18,28 +18,28 @@ class DataOrganizer:
         self.numTest0 = 0
         self.numTest1 = 0
 
-    def organizeTrainWithValidation(self, dataFileDir, resample):
-        # get all tweets from all train collections
+    # def organizeTrainWithValidation(self, dataFileDir, resample):
+    #     # get all tweets from all train collections
 
-        # split in subsets
-        # if(resample):
-        trainArray0, trainArray1, validationArray0, validationArray1 = \
-            self.readTrainWithValidationData(dataFileDir)
-
-
-        setsOfTweets0 = self.randomSplit(trainArray0)
-        setsOfTweets1 = self.randomSplit(trainArray1)
-        setsOfTweets0Validation = self.randomSplit(validationArray0)
-        setsOfTweets1Validation = self.randomSplit(validationArray1)
-
-        self.saveTrainAndValidationSets(setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, \
-            setsOfTweets1Validation, dataFileDir)
-        # else:
-        #     setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, setsOfTweets1Validation = \
-        #         loadTrainAndValidationSets();
+    #     # split in subsets
+    #     # if(resample):
+    #     trainArray0, trainArray1, validationArray0, validationArray1 = \
+    #         self.readTrainWithValidationData(dataFileDir)
 
 
-        return setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, setsOfTweets1Validation
+    #     setsOfTweets0 = self.randomSplit(trainArray0)
+    #     setsOfTweets1 = self.randomSplit(trainArray1)
+    #     setsOfTweets0Validation = self.randomSplit(validationArray0)
+    #     setsOfTweets1Validation = self.randomSplit(validationArray1)
+
+    #     self.saveTrainAndValidationSets(setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, \
+    #         setsOfTweets1Validation, dataFileDir)
+    #     # else:
+    #     #     setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, setsOfTweets1Validation = \
+    #     #         loadTrainAndValidationSets();
+
+
+    #     return setsOfTweets0, setsOfTweets1, setsOfTweets0Validation, setsOfTweets1Validation
 
     def organizeTrain(self, dataFileDir):
         trainArray0, trainArray1 = self.readDataTrain(dataFileDir)
@@ -146,11 +146,17 @@ class DataOrganizer:
                 # assign the label
                 label = 1 if '1' in fileName else 0
 
+                print fileName
+                print "Label " + str(label)
+        
+
                 # append to our collection of collections
                 collectionsWithLabel.append((collection, label))
 
                 # increment the test labels
-                self.incrementTestLabels(fileName, len(collection))
+                # self.incrementTestLabels(fileName, len(collection))
+
+
 
         return collectionsWithLabel
         

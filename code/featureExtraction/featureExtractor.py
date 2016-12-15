@@ -15,7 +15,7 @@ class FeatureExtractor:
         BagOfWords = 1
         BagOfClusters = 2
 
-    def __init__(self, modelType = 0):
+    def __init__(self, modelType = 1):
         self.modelType = modelType
 
     def bagTweets(self, setOfTweetsWordCount):
@@ -109,6 +109,7 @@ class FeatureExtractor:
         # prune our sets of sets of tweets and tokenize
         setsOfSets0 = self.removePuncStopTokenize(setsOfSets0, stopWordRemover)
         setsOfSets1 = self.removePuncStopTokenize(setsOfSets1, stopWordRemover)
+        print setsOfSets1
 
         # generate bag of words from the label 1 train pool
 
@@ -138,11 +139,11 @@ class FeatureExtractor:
                 # bag the set of tweets through its wordCount dictionary
                 X1.append(self.bagTweets(setWordCountDict))
 
-        elif self.modelType == self.ModelType.BagOfClusters:
-            # bag of cluster generation from training
-            self.boc = BagOfClusters()
-            self.boc.generateBag(setsOfSets0, setsOfSets1)
-            X0, X1 = self.boc.bagTweets(setsOfSets0, setsOfSets1)
+        # elif self.modelType == self.ModelType.BagOfClusters:
+        #     # bag of cluster generation from training
+        #     self.boc = BagOfClusters()
+        #     self.boc.generateBag(setsOfSets0, setsOfSets1)
+        #     X0, X1 = self.boc.bagTweets(setsOfSets0, setsOfSets1)
 
         return X0, X1
 

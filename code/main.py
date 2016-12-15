@@ -133,7 +133,7 @@ def main():
 
     # use BoG to convert to frequency vector
 
-    fe = FeatureExtractor(FeatureExtractor.ModelType.BagOfClusters)
+    fe = FeatureExtractor(FeatureExtractor.ModelType.BagOfWords)
 
     clf = 0
     clf_file = ""
