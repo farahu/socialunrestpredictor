@@ -58,46 +58,6 @@ class FeatureExtractor:
 
         return newSets
 
-    # def extractTrainFeatureVectors(self, allTrainData):
-    #     """ takes in 2 sets of tweets. One for train 0 and for train 1
-    #      and turns each set in both of these pool into a feature vector""" 
-
-    #     setsOfSets0, setsOfSets1 = allTrainData
-
-    #     stopWordRemover = StopWordRemover()
-
-    #     # prune our sets of sets of tweets and tokenize
-    #     setsOfSets0 = self.removePuncStopTokenize(setsOfSets0, stopWordRemover)
-    #     setsOfSets1 = self.removePuncStopTokenize(setsOfSets1, stopWordRemover)
-
-    #     # generate bag of words from the label 1 train pool
-    #     self.bog = BagOfWords()
-    #     self.bog.generateBag(setsOfSets0, setsOfSets1)
-
-    #     self.bog.saveBoG()    
-
-    #     # now we want to generate a feature vector for each set. Right now the last
-    #     # step to generate these feature vecotrs is just bagging
-    #     X0 = []
-    #     for setOfTweets in setsOfSets0:
-    #         # convert each set of tweets to a wordCount dictionary
-    #         setWordCountDict = self.getWordCountDict(setOfTweets)
-
-    #         # bag the set of tweets through its wordCount dictionary
-    #         X0.append(self.bagTweets(setWordCountDict))
-
-
-    #     # do the same for X1
-    #     X1 = []
-    #     for setOfTweets in setsOfSets1:
-    #         # convert each set of tweets to a wordCount dictionary
-    #         setWordCountDict = self.getWordCountDict(setOfTweets)
-
-    #         # bag the set of tweets through its wordCount dictionary
-    #         X1.append(self.bagTweets(setWordCountDict))
-
-    #     return X0, X1
-
     def extractTrainFeatureVectors(self, allTrainData):
         """ takes in 2 sets of tweets. One for train 0 and for train 1
          and turns each set in both of these pool into a feature vector""" 
