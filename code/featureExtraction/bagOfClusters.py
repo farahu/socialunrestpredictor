@@ -52,16 +52,48 @@ class Word2Vectorizer:
 		return self.vecDict
 
 class BagOfClusters:
-	def __init__(self, threshold = 30, useOldWord2VectDict = False):
+	def __init__(self, threshold = 30, useOldWord2VectDict = True):
 		self.bocFilename = "BoC.txt"
 		self.word2VecDictFileName = "Word2VecDict.txt"
 		self.word2Vectorizer = None
-		self.boc = []
+		self.boc = ()
 		self.useOldDict = useOldWord2VectDict
+
+	def bagTweets(self, *args):
+		""" Take in a setOfSets of tweets. Return feature set for each setOfSets """
+
+		X_all = []
+		# run through each setOfSets which corresponds to some label
+		for setsOfTweets in args:
+			# print arg
+			X_for_label = []
+			# run through each set of tweets
+			for setOfTweets in setsOfTweets:
+				# each feature will be the average of all word2Vec
+				X_for_label.append(self.getFeatureForSet(setOfTweets))
+
+			X_all.append(X_for_label)
+
+		return tuple(X_all)
+
+	def getFeatureForSet(self, setOfTweets):
+		""" For a set of tweets returns the weighted average word2Vec vector """
+
+		# get word counts for each word in all tweets
+		wordFreq = collections.defaultdict(int)
+		for tweet in setOfTweets:
+			for word in tweet:
+				wordFreq[word] += 1
+
+		print wordFreq
+
+		# we can use the same word vectors but BEWARE the counts are different
+		word2VecDict = self.word2Vectorizer.getVecCountDictionary()
+
+
 
 	def getWord2VecDict(self, sortedWordCount):
 		""" From sorted word count gives a dict of {word -> count, vec (from word2vec)}"""
-		print self.useOldDict
 
 		word2VecDict = {} 
 
@@ -69,15 +101,58 @@ class BagOfClusters:
 		if self.useOldDict:
 			# load old dict from self.word2VecDictFile
 			word2VecDictFile = open("models/BoC/" + self.word2VecDictFileName)
+			print "Building word2VecDict from file..."
 			for line in word2VecDictFile:
 				# we get word, count, vec from our text file
 				word, count, vec = line.rstrip('\n').split(',')
 				count = int(count)
-				print vec
-				vec = numpy.matrix(vec)
-				print word
-				print count
-				print "The word vector" + str(vec)
+
+				# print "------------------------------------------------------"
+				# print "Raw string " +  str(len(vec))
+
+				# print "Step A" + str(vec)
+				# reshape vec into a 52 by 6 matrix
+				# Brace yourselves. Messy code is coming
+				vec = vec.replace("[","")
+
+				# print "Step B" + str(vec)
+
+				vec = vec.replace("]","")
+
+				# print "Step C" + str(vec)
+
+				# delimit by space into a list
+				# print vec
+				# vec = vec.replace(" ", "")
+				vec = vec.split(' ')
+
+				for index, numString in enumerate(vec):
+					numString = numString.replace(" ", "")
+					vec[index] = numString
+
+				# print "Step D" + str(vec)
+
+				vec2 = []
+				for numString in vec:
+					if numString != '':
+						vec2.append(numString)
+				vec = vec2
+				# print "Length of vec: " + str(len(vec2))
+
+				for index, numString in enumerate(vec):
+					vec[index] = float(numString);
+				# print "Step E" + str(vec)
+
+
+				# print "------------------------------------------------------"
+				vec = numpy.array(vec)
+
+				# print word
+				# print count
+
+				# update our word2vecDict
+				word2VecDict[word] = (vec, count)
+				# print "The word vector" + str(vec)
 		else:
 			if self.word2Vectorizer == None:
 				self.word2Vectorizer = Word2Vectorizer()
@@ -88,6 +163,8 @@ class BagOfClusters:
 		return word2VecDict
 
 	def generateBag(self, trainPool0, trainPool1):
+		""" Returns the fit k-means model and a set of cluster indices we should consider"""
+
 		print "Generating bag of clusters"
 
 		# get word counts
@@ -102,14 +179,24 @@ class BagOfClusters:
 
 		word2VecDict = self.getWord2VecDict(sortedWordCount)
 
-		text_file = open(self.bocFilename, "w")
-		for word in word2VecDict:
-		    vec, count = word2VecDict[word]
-		    text_file.write(word + ', ' + str(count) + ', ' + str(vec) + '\n')
-		text_file.close()
+		print "Built word2VecDict..."
 
-		# clustering word vectors to get our bag of clusters
-		clusters = self.cluster(word2VecDict)
+		# text_file = open(self.bocFilename, "w")
+		# for word in word2VecDict:
+		#     vec, count = word2VecDict[word]
+		#     text_file.write(word + ', ' + str(count) + ', ' + str(vec) + '\n')
+		# text_file.close()
+
+		# generate clusters
+		learned_kmeans = self.cluster(word2VecDict)
+
+		# pick top clusters with at least 30 words in it
+		top_cluster_indices = self.pickTopClusters(30, learned_kmeans, word2VecDict)
+
+		# our bag of clusters are basically the top cluster indices
+		self.boc = (learned_kmeans, top_cluster_indices)
+		
+		return (learned_kmeans, top_cluster_indices)
 
 	def getWordCount(self, wordPool):
 		wordCount = collections.defaultdict(int)
@@ -133,16 +220,39 @@ class BagOfClusters:
 		print "Num unique words: " + str(len(wordDifference))
 		return wordDifference
 
+	def pickTopClusters(self, thresholdClusterFreq, learned_kmeans, word2vecDict):
+		""" Returns the indices of the top n clusters 
+		based on the threshold. If a test word does not have one of these indices, 
+		it is thrown out """
+
+		cluster_counts = [0] * learned_kmeans.n_clusters
+		for word, vec_count in word2vecDict.iteritems():
+			# reshape vec to be a single sample
+			index = learned_kmeans.predict(numpy.asarray(vec_count[0]).reshape(1,-1))
+
+			# add one to the number of words in this cluster. Bingo!
+			cluster_counts[index] += 1
+
+		print cluster_counts
+
+		# get indices of clusters that meet threshold
+		top_cluster_indices = set()
+		for index, cluster_count in enumerate(cluster_counts):
+			if cluster_count > thresholdClusterFreq:
+				top_cluster_indices.add(index)
+
+		return top_cluster_indices
+
+
 	def cluster(self, word2VecDict):
-		""" Gives us the most optimal high frequency clusters """
+		""" Gives the learned k-means from word2vec vectors"""
 
 		if len(word2VecDict.keys()) == 0:
 			print "No words in your word2vec dict"
 			return
 
-		print "Clustering our word vectors for Bag of Clusters"
 
-		K = 1#len(word2VecDict.keys())
+		K = 10#len(word2VecDict.keys())
 
 		# --------------------------- Sklearn implementation ----------------#
 
@@ -151,18 +261,29 @@ class BagOfClusters:
 		orig_word2vec_dim = word2VecDict[word2VecDict.keys()[0]][0].shape
 
 		X_python = []
-		for vec, count in word2VecDict.values():
+
+		word2VecDictValues = word2VecDict.values()
+		for vec, count in word2VecDictValues:
 			X_python.append(vec)
 		X = numpy.asarray(X_python)
 
-		print "Loaded numpy array for K-means"
+		print "Clustering our word vectors for Bag of Clusters"
 
 		# Run K-means with different K and minimize our loss function
+		k_means = KMeans(n_clusters=K, init='random', precompute_distances='auto')
 
-		k_means = KMeans(n_clusters=K, init='random')
 		k_means.fit(X)
 
 		print "K-means error: " + str(k_means.inertia_)
+
+		return k_means
+
+		# assignments = k_means.labels_
+		# print "Length of assignments vector: " + str(len(assignments))
+		# print "Should be " + str(num_words)
+
+		# # get the maximum radius for each centroid
+		# getRadiuses(assignments, word2VecDictValues)
 
 
 		# --------------------------- Our own implementation ----------------#
@@ -217,6 +338,12 @@ class BagOfClusters:
 		# print cluster_centers
 
 
+	# def getRadius(self, assignments, word2VecDictValues):
+	# 	""" Returns radius for each centroid in kmeans (radius by centroid index) """
+
+	# 	# run through each word, vec, count combo
+	# 	for 
+
 	def saveDict(self, dictToSave, fileName):
 		# millis = int(round(time.time() * 1000))
 		fileName = fileName 
@@ -225,5 +352,5 @@ class BagOfClusters:
 		print "Saving " + fileName + " file..."
 		file = open("models/BoC/" + fileName , 'w')
 		for word, (vec, count) in dictToSave.iteritems():
-		    file.write(word + "," + str(count) + "," + numpy.array_str(vec, max_line_width=100000) + "\n")
+			file.write(word + "," + str(count) + "," + numpy.array_str(vec, max_line_width=100000) + "\n")
 		print len(dictToSave)

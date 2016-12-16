@@ -94,9 +94,12 @@ class DataOrganizer:
         # split in subsets. Also create a label vector to return for testing
         labels = []
         for collection, label in collections:
-            for newSet in self.testSplit(collection):
+            setsInCollection = self.testSplit(collection)
+            for newSet in setsInCollection:
                 setsOfTweets.append(newSet)
                 labels.append(label)
+
+            print "There are " + str(len(setsInCollection)) + " sets in this collection"
 
         return setsOfTweets, labels
 
@@ -146,9 +149,8 @@ class DataOrganizer:
                 # assign the label
                 label = 1 if '1' in fileName else 0
 
-                print fileName
-                print "Label " + str(label)
-        
+                print "Processing data of this test event: " + fileName
+
 
                 # append to our collection of collections
                 collectionsWithLabel.append((collection, label))

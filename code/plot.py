@@ -6,8 +6,6 @@ from sklearn.metrics import confusion_matrix
 
 def plot(y_test, y_pred, class_names, title = "confusion matrix"):
     # Compute confusion matrix
-    print y_test
-    print y_pred
     cnf_matrix = confusion_matrix(y_test, y_pred)
     np.set_printoptions(precision=2)
 

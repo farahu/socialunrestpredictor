@@ -72,7 +72,7 @@ def learn(X0, X1):
     # we have to convert everything to np.arrays -.-
     featureArray = convertListOfFeatures([X0, X1])
 
-    clf = svm.SVC(gamma=0.001, C=100)
+    clf = svm.SVC(gamma=0.001, C=1.0, class_weight={0:1, 1:100}, kernel='rbf')
 
     clf.fit(featureArray, labelArray)
 
@@ -92,10 +92,14 @@ def test(action, clf, testSet, testLabels):
 
     yPred = clf.predict(featureArray)
 
-    # plot results    
+    # plot results
     # # generate yActual. For now its manual
     # yActual = [0 for i in range(numTest0)]
     # yActual.extend([1 for i in range(numTest1)])
+
+    print yPred
+    print "There were " + str(len(yPred)) + "labels"
+    print testLabels
 
     printError(yPred, testLabels)
     
@@ -133,7 +137,7 @@ def main():
 
     # use BoG to convert to frequency vector
 
-    fe = FeatureExtractor(FeatureExtractor.ModelType.BagOfWords)
+    fe = FeatureExtractor(FeatureExtractor.ModelType.BagOfClusters)
 
     clf = 0
     clf_file = ""
@@ -173,8 +177,8 @@ def main():
     if not do_test:
         # feed in the validation sets as one set
         validationData = do.organizeTest("data/validation/")
-        validationFeatures = fe.extractTestFeatureVectors(validationData)
-        test("Validation", clf, validationFeatures, do.numTest0, do.numTest1)
+        validationFeatures, validationLabels = fe.extractTestFeatureVectors(validationData)
+        test("Validation", clf, validationFeatures, validationLabels)
     else:
         # ____________________________________TESTING _______________________ #
 
